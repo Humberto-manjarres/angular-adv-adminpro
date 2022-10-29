@@ -2,6 +2,10 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 //Modulos
 import { SharedModule } from '../shared/shared.module';
+import { FormsModule } from "@angular/forms";
+import { ComponentsModule } from '../components/components.module';
+
+import { NgChartsModule } from 'ng2-charts';
 
 /* este modulo ya está cargado en momoria ya q se encuentra en el app.module principal.
   utilizaremos 'RouterModule' propio de angular ya que solo utilizaremos el <router-outlet> y no otra configuración,
@@ -16,8 +20,6 @@ import { PagesComponent } from './pages.component';
 
 
 
-
-
 @NgModule({
   declarations: [
     DashboardComponent,
@@ -26,7 +28,7 @@ import { PagesComponent } from './pages.component';
     PagesComponent
   ],
   imports: [
-    CommonModule,SharedModule,RouterModule
+    FormsModule, CommonModule,SharedModule,RouterModule, ComponentsModule,NgChartsModule
   ],
   exports:[
     DashboardComponent,
