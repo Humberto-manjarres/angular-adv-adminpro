@@ -6,6 +6,7 @@ import { environment } from 'src/environments/environment';
 import { catchError, map, tap } from 'rxjs/operators';
 import { Observable, of } from 'rxjs';
 import { Router } from '@angular/router';
+import { Usuario } from '../models/usuario.model';
 
 
 const base_url = environment.base_url;
@@ -18,20 +19,20 @@ declare const google:any;
 })
 export class UsuarioService {
 
+  public usuario:any = Usuario;
+
   constructor(private http: HttpClient, private router:Router, private ngZone:NgZone) { }
 
-  logout(){
-    localStorage.removeItem('token');
-
-    google.accounts.id.revoke('totopercusion@gmail.com', ()=> {
-
-      this.ngZone.run(()=>{
-        this.router.navigateByUrl('/login');
-      });
-      
-    })
-
+  getToken(): string{
+    return localStorage.getItem('token');
   }
+
+  /* esto es un getter de usuario */
+  get uid():string{
+    return this.usuario.uid || '';
+  }
+
+  
 
   validarToken(): Observable<boolean>{
     const token = localStorage.getItem('token') || '';
@@ -40,10 +41,14 @@ export class UsuarioService {
         'x-token': token
       }
     }).pipe(
-      tap((resp: any) => {
-        localStorage.setItem('token', resp.token)
+      map((resp: any) => {
+        /* console.log('usuario --> ',resp.usuarioDb); */
+        const {email,google,img  = '',nombre,role,uid} = resp.usuarioDb;
+        this.usuario = new Usuario(nombre,email,'',img ,google,role,uid);
+        localStorage.setItem('token', resp.token);
+        return true; //si existe una respuesta retornará 'true'
       }),
-      map(resp => true),//si existe una respuesta retornará 'true'
+      //map(resp => true),//si existe una respuesta retornará 'true'
       catchError(error => of(false))// atrapa el error y retornamos un observable en 'false' mediante el of
     );
   }
@@ -55,6 +60,18 @@ export class UsuarioService {
           localStorage.setItem('token', resp.token)
         })
       );
+  }
+
+  actualizarPerfil( data : { email:string , nombre: string, role:string}){
+    data = {
+      ...data,
+      role: this.usuario.role
+    }
+     return this.http.put(`${base_url}/usuarios/${this.uid}`,data, {
+      headers:{
+        'x-token': this.getToken()
+      }
+    });
   }
 
   login(formData: any){
@@ -73,6 +90,22 @@ export class UsuarioService {
             localStorage.setItem('token', resp.token)
           })
         )
+  }
+  
+  logout(){
+    localStorage.removeItem('token');
+    
+    
+
+    google.accounts.id.revoke('totopercusion@gmail.com', () => {
+
+      this.ngZone.run(()=>{
+        this.router.navigateByUrl('/login');
+      });
+      
+    })
+    google.accounts.id.initialize({});
+
   }
 
 }
