@@ -7,6 +7,8 @@ import { catchError, map, tap } from 'rxjs/operators';
 import { Observable, of } from 'rxjs';
 import { Router } from '@angular/router';
 import { Usuario } from '../models/usuario.model';
+import { CargarUsuarios } from '../interfaces/cargar-usuarios.interface';
+
 
 
 const base_url = environment.base_url;
@@ -31,7 +33,14 @@ export class UsuarioService {
   get uid():string{
     return this.usuario.uid || '';
   }
-
+  
+  get headers(){
+    return {
+      headers:{
+        'x-token': this.getToken()
+      }
+    }
+  }
   
 
   validarToken(): Observable<boolean>{
@@ -67,11 +76,7 @@ export class UsuarioService {
       ...data,
       role: this.usuario.role
     }
-     return this.http.put(`${base_url}/usuarios/${this.uid}`,data, {
-      headers:{
-        'x-token': this.getToken()
-      }
-    });
+     return this.http.put(`${base_url}/usuarios/${this.uid}`,data, this.headers);
   }
 
   login(formData: any){
@@ -107,5 +112,29 @@ export class UsuarioService {
     google.accounts.id.initialize({});
 
   }
+
+  cargarUsuarios(desde : number = 0){
+    return this.http.get<CargarUsuarios>(`${base_url}/usuarios?desde=${desde}`,this.headers)
+        .pipe(
+          map(resp => {
+            const usuarios = resp.usuarios.map(
+                        user => new Usuario(user.nombre, user.email,'',user.img, user.google, user.role, user.uid)
+                      )
+            return {
+              total: resp.total,
+              usuarios
+            };
+          })
+        )
+  }
+
+  eliminarUsuario(usuario:Usuario){
+    return this.http.delete(`${base_url}/usuarios/${usuario.uid}`,this.headers);
+  }
+
+  guardarUsuario( usuario : Usuario){
+    
+    return this.http.put(`${base_url}/usuarios/${usuario.uid}`,usuario, this.headers);
+ }
 
 }
