@@ -5,6 +5,7 @@ import { UsuarioService } from 'src/app/services/usuario.service';
 import Swal from 'sweetalert2';
 import { ModalImagenService } from '../../../services/modal-imagen.service';
 import { delay, Subscription } from 'rxjs';
+import { Hospital } from '../../../models/hospital.model';
 
 @Component({
   selector: 'app-usuarios',
@@ -102,7 +103,6 @@ export class UsuariosComponent implements OnInit, OnDestroy {
   }
 
   abrirModal(usuario: Usuario){
-    console.log(usuario);
     this.modalImagenService.abrirModal('usuarios',usuario.uid, usuario.img);
     
   }
