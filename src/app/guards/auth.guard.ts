@@ -8,6 +8,9 @@ import { tap } from 'rxjs/operators';
   providedIn: 'root'
 })
 export class AuthGuard implements CanActivate {
+
+  /* Este GUARD se encarga de tener siempre al usuario autenticado */
+
   constructor(private usuarioService:UsuarioService, private router: Router){}
 
   canActivate(

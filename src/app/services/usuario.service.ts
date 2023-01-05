@@ -26,12 +26,16 @@ export class UsuarioService {
   constructor(private http: HttpClient, private router:Router, private ngZone:NgZone) { }
 
   getToken(): string{
-    return localStorage.getItem('token');
+    return localStorage.getItem('token') || '';
   }
 
   /* esto es un getter de usuario */
   get uid():string{
     return this.usuario.uid || '';
+  }
+
+  get role(): 'ADMIN_ROLE'|'USER_ROLE'{
+    return this.usuario.role;
   }
   
   get headers(){
@@ -42,6 +46,11 @@ export class UsuarioService {
     }
   }
   
+  guardarLocalStorage(token: string, menu:any){
+    localStorage.setItem('token', token);
+    /* utilizamos el JSON.stringify ya que en el localStorage solo se guarda string y el menu es un objeto */
+    localStorage.setItem('menu', JSON.stringify(menu));
+  }
 
   validarToken(): Observable<boolean>{
     const token = localStorage.getItem('token') || '';
@@ -54,7 +63,8 @@ export class UsuarioService {
         /* console.log('usuario --> ',resp.usuarioDb); */
         const {email,google,img  = '',nombre,role,uid} = resp.usuarioDb;
         this.usuario = new Usuario(nombre,email,'',img ,google,role,uid);
-        localStorage.setItem('token', resp.token);
+        this.guardarLocalStorage(resp.token,resp.menu);
+      
         return true; //si existe una respuesta retornará 'true'
       }),
       //map(resp => true),//si existe una respuesta retornará 'true'
@@ -66,7 +76,7 @@ export class UsuarioService {
       return this.http.post(`${base_url}/usuarios`,formData)
       .pipe(
         tap((resp: any) => {
-          localStorage.setItem('token', resp.token)
+          this.guardarLocalStorage(resp.token,resp.menu);
         })
       );
   }
@@ -83,7 +93,7 @@ export class UsuarioService {
     return this.http.post(`${base_url}/login`,formData)
       .pipe(
         tap((resp: any) => {
-          localStorage.setItem('token', resp.token)
+          this.guardarLocalStorage(resp.token,resp.menu);
         })
       );
   }
@@ -92,16 +102,15 @@ export class UsuarioService {
     return this.http.post(`${base_url}/login/google`, {token})
         .pipe(
           tap((resp: any) => {
-            localStorage.setItem('token', resp.token)
+            this.guardarLocalStorage(resp.token,resp.menu);
           })
         )
   }
   
   logout(){
     localStorage.removeItem('token');
-    
-    
-
+    // TODO: Borrar menú
+    localStorage.removeItem('menu');
     google.accounts.id.revoke('totopercusion@gmail.com', () => {
 
       this.ngZone.run(()=>{
